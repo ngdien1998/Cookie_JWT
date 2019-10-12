@@ -6,9 +6,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using CookieJWT.Client.Models;
+using CookieJWT.Client.Filters;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CookieJWT.Client.Controllers
 {
+    [AuthorizedLogin]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -28,6 +31,7 @@ namespace CookieJWT.Client.Controllers
             return View();
         }
 
+        [AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
