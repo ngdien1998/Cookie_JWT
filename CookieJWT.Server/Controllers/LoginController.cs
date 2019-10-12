@@ -4,6 +4,7 @@ using CookieJWT.Server.Models.DataModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace CookieJWT.Server.Controllers
@@ -21,7 +22,7 @@ namespace CookieJWT.Server.Controllers
             tokenManager = new JwtTokenManager(configuration["Secret"]);
         }
 
-        [HttpGet("signin")]
+        [HttpGet("Signin")]
         public async Task<IActionResult> LoginWithUsernameAndPassword(string username, string password)
         {
             var found = await context.UserAccounts.AnyAsync(e => e.Email == username && e.Password == password);
@@ -32,8 +33,11 @@ namespace CookieJWT.Server.Controllers
                     LoginStatus = LoginStatus.InvalidUsernameOrPassword
                 });
             }
-
-            var token = tokenManager.GenerateToken(username);
+            var claims = new Claim[]
+            {
+                new Claim(ClaimTypes.Email, username)
+            };
+            var token = tokenManager.GenerateToken(claims);
             return Ok(new UserLoginDomain(username)
             {
                 LoginStatus = LoginStatus.Successfull,
@@ -41,7 +45,7 @@ namespace CookieJWT.Server.Controllers
             });
         }
 
-        [HttpGet("validate")]
+        [HttpGet("Validate")]
         public IActionResult LoginWithToken(string username, string token)
         {
             if (IsvalidToken(username, token))
@@ -59,9 +63,20 @@ namespace CookieJWT.Server.Controllers
             });
         }
 
-        private bool IsvalidToken(string username, string token)
+        private bool IsvalidToken(string email, string token)
         {
-            return tokenManager.GetUsername(token) == username;
+            var principal = tokenManager.GetPrincipal(token);
+            if (principal == null)
+            {
+                return false;
+            }
+
+            if (principal.Identity is ClaimsIdentity identity)
+            {
+                var userClaim = identity.FindFirst(ClaimTypes.Email);
+                return userClaim?.Value == email;
+            }
+            return false;
         }
     }
 }

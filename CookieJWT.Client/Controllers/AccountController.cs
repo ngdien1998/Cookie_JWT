@@ -1,27 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using CookieJWT.Client.Common;
+﻿using CookieJWT.Client.Common;
 using CookieJWT.Client.Filters;
 using CookieJWT.Client.Models;
 using CookieJWT.Domain;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using System;
+using System.Globalization;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace CookieJWT.Client.Controllers
 {
     public class AccountController : Controller
     {
         public static CultureInfo Format = CultureInfo.CreateSpecificCulture("vi-VN");
-        private const string LoginScheme = "DefaultScheme";
+
+        private IResponseCookies ResponseCookies => HttpContext.Response.Cookies;
+        private IRequestCookieCollection RequestCookies => HttpContext.Request.Cookies;
+        private ISession Session => HttpContext.Session;
 
         private readonly IConfiguration configuration;
 
@@ -33,23 +32,23 @@ namespace CookieJWT.Client.Controllers
         [HttpGet]
         public async Task<IActionResult> Login()
         {
-            var savedtoken = HttpContext.Request.Cookies[Consts.LoginToken];
-            var username = HttpContext.Request.Cookies[Consts.Username];
+            var savedtoken = RequestCookies[Consts.LoginToken];
+            var username = RequestCookies[Consts.Username];
             if (!string.IsNullOrWhiteSpace(savedtoken) && !string.IsNullOrWhiteSpace(username))
             {
-                var (loginSuccess, token) = await LoginWithTokenSuccessAsync(username, savedtoken);
+                var (loginSuccess, token) = await AuthorizeWithTokenAsync(username, savedtoken);
                 if (loginSuccess)
                 {
                     // Rewrite Cookie
-                    HttpContext.Response.Cookies.Delete(Consts.LoginToken);
-                    HttpContext.Response.Cookies.Delete(Consts.Username);
+                    ResponseCookies.Delete(Consts.LoginToken);
+                    ResponseCookies.Delete(Consts.Username);
 
                     var savingTime = GetCookieOptions(DateTime.Now);
-                    HttpContext.Response.Cookies.Append(Consts.LoginToken, token, savingTime);
-                    HttpContext.Response.Cookies.Append(Consts.Username, username, savingTime);
+                    ResponseCookies.Append(Consts.LoginToken, token, savingTime);
+                    ResponseCookies.Append(Consts.Username, username, savingTime);
 
                     // Current login state
-                    HttpContext.Session.SetObject(Consts.LoginSession, new LoginedUser(username));
+                    Session.SetObject(Consts.LoginSession, new LoginedUser(username));
                     return RedirectToAction(nameof(HomeController.Index), ControllerName.Of<HomeController>());
                 }
             }
@@ -75,15 +74,15 @@ namespace CookieJWT.Client.Controllers
             if (acc.RememberLogin)
             {
                 var savingTime = GetCookieOptions(DateTime.Now);
-                HttpContext.Response.Cookies.Append(Consts.LoginToken, savedToken, savingTime);
-                HttpContext.Response.Cookies.Append(Consts.Username, acc.Email, savingTime);
+                ResponseCookies.Append(Consts.LoginToken, savedToken, savingTime);
+                ResponseCookies.Append(Consts.Username, acc.Email, savingTime);
             }
 
-            HttpContext.Session.SetObject(Consts.LoginSession, new LoginedUser(acc.Email));
+            Session.SetObject(Consts.LoginSession, new LoginedUser(acc.Email));
             return RedirectToAction(nameof(HomeController.Index), ControllerName.Of<HomeController>());
         }
 
-        private async Task<(bool, string)> LoginWithTokenSuccessAsync(string username, string token)
+        private async Task<(bool, string)> AuthorizeWithTokenAsync(string username, string token)
         {
             using var client = new HttpClient
             {
@@ -145,11 +144,10 @@ namespace CookieJWT.Client.Controllers
         [AuthorizedLogin]
         public IActionResult Logout()
         {
-            var res = SignOut(LoginScheme);
             return RedirectToAction(nameof(Index));
         }
 
-        public CookieOptions GetCookieOptions(DateTime now) => new CookieOptions
+        private CookieOptions GetCookieOptions(DateTime now) => new CookieOptions
         {
             MaxAge = TimeSpan.FromDays(15),
             Expires = now.AddDays(15)

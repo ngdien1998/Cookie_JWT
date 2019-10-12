@@ -1,10 +1,7 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace CookieJWT.Server.Common
 {
@@ -17,14 +14,10 @@ namespace CookieJWT.Server.Common
             this.secret = secret;
         }
 
-        public string GenerateToken(string username)
+        public string GenerateToken(Claim[] claims)
         {
             var key = Convert.FromBase64String(secret);
             var securityKey = new SymmetricSecurityKey(key);
-            var claims = new Claim[]
-            {
-                new Claim(ClaimTypes.Email, username)
-            };
 
             var tokenDesc = new SecurityTokenDescriptor
             {
@@ -38,23 +31,7 @@ namespace CookieJWT.Server.Common
             return handler.WriteToken(token);
         }
 
-        public string GetUsername(string token)
-        {
-            var principal = GetPrincipal(token);
-            if (principal == null)
-            {
-                return string.Empty;
-            }
-
-            if (principal.Identity is ClaimsIdentity identity)
-            {
-                var userClaim = identity.FindFirst(ClaimTypes.Email);
-                return userClaim?.Value;
-            }
-            return string.Empty;
-        }
-
-        private ClaimsPrincipal GetPrincipal(string token)
+        public ClaimsPrincipal GetPrincipal(string token)
         {
             try
             {
