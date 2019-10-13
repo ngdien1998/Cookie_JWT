@@ -144,7 +144,8 @@ namespace CookieJWT.Client.Controllers
         [AuthorizedLogin]
         public IActionResult Logout()
         {
-            return RedirectToAction(nameof(Index));
+            // TODO: chưa xử lý đăng xuất
+            return NoContent();
         }
 
         private CookieOptions GetCookieOptions(DateTime now) => new CookieOptions

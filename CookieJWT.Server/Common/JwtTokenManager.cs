@@ -5,6 +5,9 @@ using System.Security.Claims;
 
 namespace CookieJWT.Server.Common
 {
+    /// <summary>
+    /// Refers from https://www.c-sharpcorner.com/article/how-to-use-jwt-authentication-with-web-api/
+    /// </summary>
     public class JwtTokenManager
     {
         private readonly string secret;
