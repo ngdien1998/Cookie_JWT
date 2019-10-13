@@ -20,8 +20,10 @@ namespace CookieJWT.Domain
 
     public enum LoginStatus
     {
+        Default,
         Successfull,
         InvalidUsernameOrPassword,
-        InvalidToken
+        InvalidToken,
+        TokenExpired
     }
 }

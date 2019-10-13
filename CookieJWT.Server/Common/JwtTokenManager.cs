@@ -22,7 +22,8 @@ namespace CookieJWT.Server.Common
             var tokenDesc = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddDays(10),
+                NotBefore = DateTime.Now,
+                Expires = DateTime.Now.AddDays(15),
                 SigningCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature)
             };
 
@@ -48,9 +49,15 @@ namespace CookieJWT.Server.Common
                     RequireExpirationTime = true,
                     ValidateIssuer = false,
                     ValidateAudience = false,
+                    ValidateTokenReplay = true,
+                    ValidateLifetime = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key)
                 };
                 return tokenHandler.ValidateToken(token, tokenParams, out _);
+            }
+            catch (SecurityTokenExpiredException e)
+            {
+                throw e;
             }
             catch (Exception e)
             {

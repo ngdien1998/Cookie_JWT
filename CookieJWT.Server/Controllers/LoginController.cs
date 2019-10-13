@@ -4,6 +4,7 @@ using CookieJWT.Server.Models.DataModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -48,7 +49,20 @@ namespace CookieJWT.Server.Controllers
         [HttpGet("Validate")]
         public IActionResult LoginWithToken(string username, string token)
         {
-            if (IsvalidToken(username, token))
+            bool accept;
+            try
+            {
+                accept = IsvalidToken(username, token);
+            }
+            catch (SecurityTokenExpiredException)
+            {
+                return Ok(new UserLoginDomain
+                {
+                    LoginStatus = LoginStatus.TokenExpired
+                });
+            }
+
+            if (accept)
             {
                 return Ok(new UserLoginDomain(username)
                 {
@@ -65,18 +79,25 @@ namespace CookieJWT.Server.Controllers
 
         private bool IsvalidToken(string email, string token)
         {
-            var principal = tokenManager.GetPrincipal(token);
-            if (principal == null)
+            try
             {
+                var principal = tokenManager.GetPrincipal(token);
+                if (principal == null)
+                {
+                    return false;
+                }
+
+                if (principal.Identity is ClaimsIdentity identity)
+                {
+                    var userClaim = identity.FindFirst(ClaimTypes.Email);
+                    return userClaim?.Value == email;
+                }
                 return false;
             }
-
-            if (principal.Identity is ClaimsIdentity identity)
+            catch (SecurityTokenExpiredException e)
             {
-                var userClaim = identity.FindFirst(ClaimTypes.Email);
-                return userClaim?.Value == email;
+                throw e;
             }
-            return false;
         }
     }
 }
