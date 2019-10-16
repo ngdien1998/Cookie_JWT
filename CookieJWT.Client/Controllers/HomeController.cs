@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using CookieJWT.Client.Models;
 using CookieJWT.Client.Filters;
 using Microsoft.AspNetCore.Authorization;
+using CookieJWT.Client.Common;
 
 namespace CookieJWT.Client.Controllers
 {

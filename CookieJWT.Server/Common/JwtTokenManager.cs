@@ -26,7 +26,7 @@ namespace CookieJWT.Server.Common
             {
                 Subject = new ClaimsIdentity(claims),
                 NotBefore = DateTime.Now,
-                Expires = DateTime.Now.AddDays(15),
+                Expires = DateTime.Now.AddSeconds(5),
                 SigningCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature)
             };
 
