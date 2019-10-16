@@ -12,5 +12,7 @@ namespace CookieJWT.Server.Models.DataModels
 
         [Column(TypeName = "varchar(50)")]
         public string Password { get; set; }
+
+        public int Permission { get; set; }
     }
 }
