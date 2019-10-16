@@ -1,0 +1,9 @@
+{
+  "solution": {
+    "path": "CookieJWT.sln",
+    "projects": [
+      "CookieJWT.Domain\\CookieJWT.Domain.csproj",
+      "CookieJWT.Server\\CookieJWT.Server.csproj"
+    ]
+  }
+}

@@ -57,6 +57,7 @@ namespace CookieJWT.Client.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(UserAccountViewModel acc)
         {
             if (!ModelState.IsValid)
@@ -98,7 +99,7 @@ namespace CookieJWT.Client.Controllers
                 {
                     var userLoginString = await resp.Content.ReadAsStringAsync();
                     var userLogin = JsonConvert.DeserializeObject<UserLoginDomain>(userLoginString);
-                    if (userLogin != null && userLogin.LoginStatus == LoginStatus.Successfull)
+                    if (userLogin != null && (userLogin.LoginStatus == LoginStatus.Successfull || userLogin.LoginStatus == LoginStatus.TokenExpiredWithNewToken))
                     {
                         return (true, userLogin.Token);
                     }

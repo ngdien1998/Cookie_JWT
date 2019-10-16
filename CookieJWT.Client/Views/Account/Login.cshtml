@@ -11,7 +11,9 @@
 </head>
 <body>
     <div style="margin:auto;width:500px;padding:16px;margin-top:24px;" class="card">
+        @Html.ValidationSummary()
         <form style="margin:0;" asp-action="@nameof(AccountController.Login)" asp-controller="@(ControllerName.Of<AccountController>())" method="post">
+            @Html.AntiForgeryToken()
             <div class="form-group">
                 <label for="email">Email address</label>
                 <input type="email" class="form-control" asp-for="Email" id="email" aria-describedby="emailHelp" placeholder="Enter email" />

@@ -52,20 +52,19 @@ namespace CookieJWT.Server.Common
                     RequireExpirationTime = true,
                     ValidateIssuer = false,
                     ValidateAudience = false,
-                    ValidateTokenReplay = true,
-                    ValidateLifetime = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key)
                 };
-                return tokenHandler.ValidateToken(token, tokenParams, out _);
-            }
-            catch (SecurityTokenExpiredException e)
-            {
-                throw e;
+                
+                var principal = tokenHandler.ValidateToken(token, tokenParams, out var securityToken);
+                if (securityToken.ValidTo < DateTime.Now)
+                {
+                    throw new SecurityTokenExpiredException();
+                }
+                return principal;
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
-                return null;
+                throw e;
             }
         }
     }

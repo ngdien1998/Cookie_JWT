@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -34,11 +35,13 @@ namespace CookieJWT.Server.Controllers
                     LoginStatus = LoginStatus.InvalidUsernameOrPassword
                 });
             }
+
             var claims = new Claim[]
             {
                 new Claim(ClaimTypes.Email, username)
             };
             var token = tokenManager.GenerateToken(claims);
+
             return Ok(new UserLoginDomain(username)
             {
                 LoginStatus = LoginStatus.Successfull,
@@ -56,10 +59,20 @@ namespace CookieJWT.Server.Controllers
             }
             catch (SecurityTokenExpiredException)
             {
+                var claims = new Claim[]
+                {
+                    new Claim(ClaimTypes.Email, username)
+                };
+                var newToken = tokenManager.GenerateToken(claims);
                 return Ok(new UserLoginDomain
                 {
-                    LoginStatus = LoginStatus.TokenExpired
+                    LoginStatus = LoginStatus.TokenExpiredWithNewToken,
+                    Token = newToken
                 });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e);
             }
 
             if (accept)
@@ -94,7 +107,7 @@ namespace CookieJWT.Server.Controllers
                 }
                 return false;
             }
-            catch (SecurityTokenExpiredException e)
+            catch (Exception e)
             {
                 throw e;
             }

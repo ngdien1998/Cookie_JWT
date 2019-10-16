@@ -24,6 +24,7 @@ namespace CookieJWT.Domain
         Successfull,
         InvalidUsernameOrPassword,
         InvalidToken,
-        TokenExpired
+        TokenExpired,
+        TokenExpiredWithNewToken
     }
 }
