@@ -144,8 +144,12 @@ namespace CookieJWT.Client.Controllers
         [AuthorizedLogin]
         public IActionResult Logout()
         {
-            // TODO: chưa xử lý đăng xuất
-            return NoContent();
+            Session.Remove(Consts.LoginSession);
+            foreach (var cookie in RequestCookies.Keys)
+            {
+                ResponseCookies.Delete(cookie);
+            }
+            return Redirect("/Account/Login/");
         }
 
         private CookieOptions GetCookieOptions(DateTime now) => new CookieOptions
