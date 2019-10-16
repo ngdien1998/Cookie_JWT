@@ -149,7 +149,7 @@ namespace CookieJWT.Client.Controllers
             {
                 ResponseCookies.Delete(cookie);
             }
-            return Redirect("/Account/Login/");
+            return RedirectToAction(nameof(AccountController.Login), ControllerName.Of<AccountController>());
         }
 
         private CookieOptions GetCookieOptions(DateTime now) => new CookieOptions
