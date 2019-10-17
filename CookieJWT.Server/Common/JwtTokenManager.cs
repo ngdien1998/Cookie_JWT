@@ -26,7 +26,7 @@ namespace CookieJWT.Server.Common
             {
                 Subject = new ClaimsIdentity(claims),
                 NotBefore = DateTime.Now,
-                Expires = DateTime.Now.AddSeconds(5),
+                Expires = DateTime.Now.AddDays(15),
                 SigningCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature)
             };
 
@@ -35,8 +35,9 @@ namespace CookieJWT.Server.Common
             return handler.WriteToken(token);
         }
 
-        public ClaimsPrincipal GetPrincipal(string token)
+        public ClaimsPrincipal GetPrincipal(string token, out SecurityToken securityToken)
         {
+            securityToken = null;
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
@@ -55,11 +56,7 @@ namespace CookieJWT.Server.Common
                     IssuerSigningKey = new SymmetricSecurityKey(key)
                 };
                 
-                var principal = tokenHandler.ValidateToken(token, tokenParams, out var securityToken);
-                if (securityToken.ValidTo < DateTime.Now)
-                {
-                    throw new SecurityTokenExpiredException();
-                }
+                var principal = tokenHandler.ValidateToken(token, tokenParams, out securityToken);
                 return principal;
             }
             catch (Exception e)

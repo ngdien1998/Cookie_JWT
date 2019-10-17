@@ -64,6 +64,7 @@ namespace CookieJWT.Server.Controllers
                     new Claim(ClaimTypes.Email, username)
                 };
                 var newToken = tokenManager.GenerateToken(claims);
+
                 return Ok(new UserLoginDomain
                 {
                     LoginStatus = LoginStatus.TokenExpiredWithNewToken,
@@ -94,7 +95,7 @@ namespace CookieJWT.Server.Controllers
         {
             try
             {
-                var principal = tokenManager.GetPrincipal(token);
+                var principal = tokenManager.GetPrincipal(token, out var securityToken);
                 if (principal == null)
                 {
                     return false;
@@ -103,7 +104,14 @@ namespace CookieJWT.Server.Controllers
                 if (principal.Identity is ClaimsIdentity identity)
                 {
                     var userClaim = identity.FindFirst(ClaimTypes.Email);
-                    return userClaim?.Value == email;
+                    if (userClaim?.Value == email)
+                    {
+                        if (securityToken != null && securityToken.ValidTo.Date < DateTime.Now.Date)
+                        {
+                            throw new SecurityTokenExpiredException();
+                        }
+                        return true;
+                    }
                 }
                 return false;
             }
