@@ -10,11 +10,11 @@ namespace CookieJWT.Client.Filters
     {
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-
-            if (!context.HttpContext.Request.Cookies.ContainsKey(Consts.LoginToken))
-            {
-                context.HttpContext.Session.Remove(Consts.LoginSession);              
-            }
+            //var requestCookies = context.HttpContext.Request.Cookies;
+            //if (!requestCookies.ContainsKey(Consts.LoginToken) || !requestCookies.ContainsKey(Consts.Username))
+            //{
+            //    context.HttpContext.Session.Remove(Consts.LoginSession);
+            //}
 
             var sessionUser = context.HttpContext.Session.GetObject<LoginedUser>(Consts.LoginSession);
             if (sessionUser == null)
